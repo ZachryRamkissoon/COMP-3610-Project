@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYCS Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .predict-button { transition: background-color 0.3s ease, transform 0.2s ease; }
+        .predict-button:hover { transform: translateY(-2px); }
+        .result-box { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-gray-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-teal-500 selection:text-white">
+
+    <div class="bg-slate-800 shadow-2xl rounded-xl p-6 md:p-10 w-full max-w-2xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-teal-400">Song MYCS Predictor</h1>
+            <p class="text-slate-400 mt-2">Enter song lyrics to predict its Multi-Year Chart Score (MYCS) and percentile.</p>
+            <nav class="mt-4">
+                <a href="{{ url_for('home') }}" class="text-sky-400 hover:text-sky-300 transition-colors">Go to Top 20 Predictor</a>
+            </nav>
+        </header>
+
+        <form action="{{ url_for('predict_mycs') }}" method="post" class="space-y-6">
+            <div>
+                <label for="lyrics" class="block text-sm font-medium text-slate-300 mb-1">Song Lyrics:</label>
+                <textarea id="lyrics" name="lyrics" rows="10"
+                          class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-100 placeholder-slate-500 transition duration-150 ease-in-out"
+                          placeholder="Paste your song lyrics here..."
+                          required>{{ lyrics_text if lyrics_text else '' }}</textarea>
+            </div>
+
+            <div>
+                <button type="submit"
+                        class="predict-button w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50">
+                    Predict MYCS
+                </button>
+            </div>
+        </form>
+
+        {% if error_message %}
+            <div class="mt-8 p-4 bg-red-700 border border-red-600 text-red-100 rounded-lg result-box">
+                <p class="font-semibold">Error:</p>
+                <p>{{ error_message }}</p>
+            </div>
+        {% endif %}
+
+        {% if prediction_mycs is not none %} <div class="mt-8 p-6 bg-slate-700 border border-slate-600 rounded-lg shadow-lg result-box">
+                <h2 class="text-2xl font-semibold text-teal-400 mb-2">MYCS Prediction Result:</h2>
+                <p class="text-xl text-slate-100">Predicted MYCS: <span class="font-bold">{{ "%.2f"|format(prediction_mycs) }}</span></p>
+                {% if percentile is not none and percentile != "N/A (no historical data)" %}
+                    <p class="text-md text-slate-300 mt-1">This score would be in the <span class="font-bold">{{ "%.1f"|format(percentile) }}th percentile</span> of historical Hot 100 songs ({{ historical_song_count }} songs, 1964-2023).</p>
+                {% elif percentile == "N/A (no historical data)" %}
+                     <p class="text-md text-slate-400 mt-1">Percentile information is currently unavailable (no historical data loaded).</p>
+                {% endif %}
+                 {% if rank_estimate is not none and rank_estimate != "N/A" %}
+                    <p class="text-md text-slate-400 mt-1">Estimated rank among {{ historical_song_count }} songs: <span class="font-bold">{{ rank_estimate }}</span></p>
+                {% elif rank_estimate == "N/A" %}
+                     <p class="text-md text-slate-400 mt-1">Rank estimate is currently unavailable.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <footer class="mt-12 text-center text-sm text-slate-500">
+        <p>&copy; Song Predictor App.</p>
+    </footer>
+</body>
+</html>
